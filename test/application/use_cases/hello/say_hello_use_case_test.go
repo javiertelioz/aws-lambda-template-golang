@@ -19,7 +19,7 @@ func TestSayHelloUseCaseTestSuite(t *testing.T) {
 }
 
 func (suite *SayHelloUseCaseTestSuite) SetupTest() {
-	suite.result = "Hello Joe"
+	suite.result = "Hello Joe!"
 }
 
 func (suite *SayHelloUseCaseTestSuite) givenName(name string) {
@@ -31,7 +31,7 @@ func (suite *SayHelloUseCaseTestSuite) whenSayHelloUseCaseIsCalled() {
 }
 
 func (suite *SayHelloUseCaseTestSuite) thenSayHello() {
-	suite.Equal(suite.result, fmt.Sprintf("Hello %s", suite.name))
+	suite.Equal(suite.result, fmt.Sprintf("Hello %s!", suite.name))
 }
 
 func (suite *SayHelloUseCaseTestSuite) TestSayHelloUseCase() {
