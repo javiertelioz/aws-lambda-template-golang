@@ -1,5 +1,9 @@
-# Lambda Golang Template
+# Lambda Golang Template 
 
+![Go Lambda Golang Template](https://www.go-on-aws.com/img/lambda-go-deploy-container.png)
+
+
+[![codecov](https://codecov.io/gh/javiertelioz/aws-lambda-template-golang/graph/badge.svg?token=UCLHV4RD3C)](https://codecov.io/gh/javiertelioz/aws-lambda-template-golang)
 This project is a template for creating AWS Lambda functions in Go, using Docker and the AWS Lambda Runtime Interface Emulator (RIE) to facilitate local development and testing.
 
 ## Installation

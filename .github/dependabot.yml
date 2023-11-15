@@ -8,3 +8,11 @@ updates:
     labels:
       - "dependencies"
       - "automated"
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    labels:
+      - "dependencies"
+      - "automated"
