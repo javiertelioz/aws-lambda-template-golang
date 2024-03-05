@@ -1,6 +1,6 @@
 module github.com/javiertelioz/aws-lambda-golang
 
-go 1.22
+go 1.21
 
 require (
 	github.com/aws/aws-lambda-go v1.46.0
