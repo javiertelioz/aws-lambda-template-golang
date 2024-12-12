@@ -5,7 +5,7 @@ go 1.23
 require (
 	github.com/aws/aws-lambda-go v1.47.0
 	github.com/rs/zerolog v1.33.0
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 )
 
 require (
