@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/javiertelioz/aws-lambda-golang/pkg/application/use_cases/hello"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/javiertelioz/aws-lambda-golang/pkg/application/use_cases/hello"
 )
 
 type SayHelloUseCaseTestSuite struct {

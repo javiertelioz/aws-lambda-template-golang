@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/javiertelioz/aws-lambda-golang/pkg/domain/services"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/rs/zerolog/pkgerrors"
+
+	"github.com/javiertelioz/aws-lambda-golang/pkg/domain/services"
 )
 
 type ZerologLogger struct{}
