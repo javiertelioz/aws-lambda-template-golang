@@ -2,6 +2,7 @@ package logger
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"testing"
 
@@ -20,6 +21,7 @@ type ZerologLoggerTestSuite struct {
 }
 
 func TestZerologLoggerTestSuite(t *testing.T) {
+	t.Parallel()
 	suite.Run(t, new(ZerologLoggerTestSuite))
 }
 
@@ -35,23 +37,23 @@ func (suite *ZerologLoggerTestSuite) givenLogMessage(msg string) {
 }
 
 func (suite *ZerologLoggerTestSuite) whenTraceIsCalled() {
-	suite.logger.Trace(suite.logMessage)
+	suite.logger.Trace(context.Background(), suite.logMessage)
 }
 
 func (suite *ZerologLoggerTestSuite) whenDebugIsCalled() {
-	suite.logger.Debug(suite.logMessage)
+	suite.logger.Debug(context.Background(), suite.logMessage)
 }
 
 func (suite *ZerologLoggerTestSuite) whenInfoIsCalled() {
-	suite.logger.Info(suite.logMessage)
+	suite.logger.Info(context.Background(), suite.logMessage)
 }
 
 func (suite *ZerologLoggerTestSuite) whenWarnIsCalled() {
-	suite.logger.Warn(suite.logMessage)
+	suite.logger.Warn(context.Background(), suite.logMessage)
 }
 
 func (suite *ZerologLoggerTestSuite) whenErrorIsCalled() {
-	suite.logger.Error(suite.logMessage)
+	suite.logger.Error(context.Background(), suite.logMessage)
 }
 
 func (suite *ZerologLoggerTestSuite) thenLogShouldContainMessage() {
