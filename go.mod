@@ -1,9 +1,9 @@
 module github.com/javiertelioz/aws-lambda-golang
 
-go 1.24.0
+go 1.25.4
 
 require (
-	github.com/aws/aws-lambda-go v1.50.0
+	github.com/aws/aws-lambda-go v1.52.0
 	github.com/rs/zerolog v1.34.0
 	github.com/stretchr/testify v1.11.1
 )
@@ -17,7 +17,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/stretchr/objx v0.5.3 // indirect
-	golang.org/x/sys v0.37.0 // indirect
+	golang.org/x/sys v0.40.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
