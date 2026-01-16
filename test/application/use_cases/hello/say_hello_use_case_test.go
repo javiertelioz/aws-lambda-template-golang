@@ -16,6 +16,7 @@ type SayHelloUseCaseTestSuite struct {
 }
 
 func TestSayHelloUseCaseTestSuite(t *testing.T) {
+	t.Parallel()
 	suite.Run(t, new(SayHelloUseCaseTestSuite))
 }
 

@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -19,6 +21,7 @@ type HelloHandlerTestSuite struct {
 }
 
 func TestHelloHandlerTestSuite(t *testing.T) {
+	t.Parallel()
 	suite.Run(t, new(HelloHandlerTestSuite))
 }
 
@@ -28,6 +31,7 @@ func (suite *HelloHandlerTestSuite) SetupTest() {
 	suite.err = nil
 }
 
+// Given methods
 func (suite *HelloHandlerTestSuite) givenRequestWithName(name string) {
 	suite.request.QueryStringParameters = map[string]string{
 		"name": name,
@@ -38,18 +42,53 @@ func (suite *HelloHandlerTestSuite) givenRequestWithoutName() {
 	suite.request.QueryStringParameters = map[string]string{}
 }
 
+func (suite *HelloHandlerTestSuite) givenRequestWithNameContainingOnlySpaces() {
+	suite.request.QueryStringParameters = map[string]string{"name": "   "}
+}
+
+func (suite *HelloHandlerTestSuite) givenRequestWithLongName(length int) {
+	longName := strings.Repeat("a", length)
+	suite.request.QueryStringParameters = map[string]string{"name": longName}
+}
+
+func (suite *HelloHandlerTestSuite) givenRequestWithInvalidName(invalidName string) {
+	suite.request.QueryStringParameters = map[string]string{"name": invalidName}
+}
+
+// When methods
 func (suite *HelloHandlerTestSuite) whenHelloHandleRequestIsCalled() {
 	suite.response, suite.err = handlers.HelloHandleRequest(suite.ctx, suite.request)
 }
 
+// Then methods
 func (suite *HelloHandlerTestSuite) thenResponseShouldBeSuccessful() {
 	suite.NoError(suite.err)
 	suite.Equal(200, suite.response.StatusCode)
 }
 
+func (suite *HelloHandlerTestSuite) thenResponseShouldBeBadRequest() {
+	suite.NoError(suite.err)
+	suite.Equal(400, suite.response.StatusCode)
+}
+
 func (suite *HelloHandlerTestSuite) thenResponseBodyShouldBe(expectedBody string) {
 	suite.Equal(expectedBody, suite.response.Body)
 }
+
+func (suite *HelloHandlerTestSuite) thenResponseBodyShouldContain(expectedText string) {
+	suite.Contains(suite.response.Body, expectedText)
+}
+
+func (suite *HelloHandlerTestSuite) thenResponseShouldBeValidJSON() {
+	var jsonResponse map[string]string
+	err := json.Unmarshal([]byte(suite.response.Body), &jsonResponse)
+	suite.NoError(err)
+	suite.Contains(jsonResponse, "error")
+}
+
+// ============================================================================
+// Test Cases - Basic Functionality
+// ============================================================================
 
 func (suite *HelloHandlerTestSuite) TestHelloHandlerWithName() {
 	// Given
@@ -73,4 +112,146 @@ func (suite *HelloHandlerTestSuite) TestHelloHandlerWithoutName() {
 	// Then
 	suite.thenResponseShouldBeSuccessful()
 	suite.thenResponseBodyShouldBe("Hello world!")
+}
+
+// ============================================================================
+// Test Cases - Valid Input Variations
+// ============================================================================
+
+func (suite *HelloHandlerTestSuite) TestValidName_WithSpaces() {
+	// Given
+	suite.givenRequestWithName("John Doe")
+
+	// When
+	suite.whenHelloHandleRequestIsCalled()
+
+	// Then
+	suite.thenResponseShouldBeSuccessful()
+	suite.thenResponseBodyShouldBe("Hello John Doe!")
+}
+
+func (suite *HelloHandlerTestSuite) TestValidName_WithInternationalCharacters() {
+	// Given
+	suite.givenRequestWithName("José María")
+
+	// When
+	suite.whenHelloHandleRequestIsCalled()
+
+	// Then
+	suite.thenResponseShouldBeSuccessful()
+	suite.thenResponseBodyShouldBe("Hello José María!")
+}
+
+func (suite *HelloHandlerTestSuite) TestValidName_WithHyphen() {
+	// Given
+	suite.givenRequestWithName("Mary-Jane")
+
+	// When
+	suite.whenHelloHandleRequestIsCalled()
+
+	// Then
+	suite.thenResponseShouldBeSuccessful()
+	suite.thenResponseBodyShouldBe("Hello Mary-Jane!")
+}
+
+func (suite *HelloHandlerTestSuite) TestValidName_WithApostrophe() {
+	// Given
+	suite.givenRequestWithName("O'Brien")
+
+	// When
+	suite.whenHelloHandleRequestIsCalled()
+
+	// Then
+	suite.thenResponseShouldBeSuccessful()
+	suite.thenResponseBodyShouldBe("Hello O'Brien!")
+}
+
+// ============================================================================
+// Test Cases - Empty/Default Values
+// ============================================================================
+
+func (suite *HelloHandlerTestSuite) TestNameWithOnlySpaces_ShouldDefaultToWorld() {
+	// Given
+	suite.givenRequestWithNameContainingOnlySpaces()
+
+	// When
+	suite.whenHelloHandleRequestIsCalled()
+
+	// Then
+	suite.thenResponseShouldBeSuccessful()
+	suite.thenResponseBodyShouldBe("Hello world!")
+}
+
+// ============================================================================
+// Test Cases - Input Validation (Length)
+// ============================================================================
+
+func (suite *HelloHandlerTestSuite) TestNameTooLong_ShouldReject() {
+	// Given
+	suite.givenRequestWithLongName(101)
+
+	// When
+	suite.whenHelloHandleRequestIsCalled()
+
+	// Then
+	suite.thenResponseShouldBeBadRequest()
+	suite.thenResponseBodyShouldContain("too long")
+	suite.thenResponseBodyShouldContain("100")
+	suite.thenResponseShouldBeValidJSON()
+}
+
+// ============================================================================
+// Test Cases - Security (Attack Prevention)
+// ============================================================================
+
+func (suite *HelloHandlerTestSuite) TestInvalidCharacters_ScriptTag_ShouldReject() {
+	// Given
+	suite.givenRequestWithInvalidName("<script>alert('xss')</script>")
+
+	// When
+	suite.whenHelloHandleRequestIsCalled()
+
+	// Then
+	suite.thenResponseShouldBeBadRequest()
+	suite.thenResponseBodyShouldContain("invalid characters")
+	suite.thenResponseShouldBeValidJSON()
+}
+
+func (suite *HelloHandlerTestSuite) TestInvalidCharacters_SQLInjection_ShouldReject() {
+	// Given
+	suite.givenRequestWithInvalidName("'; DROP TABLE users--")
+
+	// When
+	suite.whenHelloHandleRequestIsCalled()
+
+	// Then
+	suite.thenResponseShouldBeBadRequest()
+	suite.thenResponseBodyShouldContain("invalid characters")
+	suite.thenResponseShouldBeValidJSON()
+}
+
+func (suite *HelloHandlerTestSuite) TestInvalidCharacters_SpecialSymbols_ShouldReject() {
+	// Given
+	suite.givenRequestWithInvalidName("John@Doe")
+
+	// When
+	suite.whenHelloHandleRequestIsCalled()
+
+	// Then
+	suite.thenResponseShouldBeBadRequest()
+	suite.thenResponseBodyShouldContain("invalid characters")
+	suite.thenResponseShouldBeValidJSON()
+}
+
+func (suite *HelloHandlerTestSuite) TestInvalidCharacters_PathTraversal_ShouldReject() {
+	// Given
+	suite.givenRequestWithInvalidName("../../../etc/passwd")
+
+	// When
+	suite.whenHelloHandleRequestIsCalled()
+
+	// Then
+	suite.thenResponseShouldBeBadRequest()
+	suite.thenResponseBodyShouldContain("invalid characters")
+	suite.thenResponseShouldBeValidJSON()
 }
