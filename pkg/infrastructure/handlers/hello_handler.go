@@ -32,9 +32,15 @@ func HelloHandleRequest(
 	ctx context.Context,
 	request events.APIGatewayProxyRequest,
 ) (events.APIGatewayProxyResponse, error) {
+	if request.RequestContext.RequestID != "" {
+		ctx = context.WithValue(ctx, "request_id", request.RequestContext.RequestID)
+	}
+
 	loggerService := logger.NewLogger()
 	loggerService.Log(ctx, services.LevelDebug, "Request received",
 		services.Field{Key: "query_params", Value: request.QueryStringParameters},
+		services.Field{Key: "http_method", Value: request.HTTPMethod},
+		services.Field{Key: "path", Value: request.Path},
 	)
 
 	name := request.QueryStringParameters["name"]
