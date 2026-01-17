@@ -2,31 +2,18 @@ package service
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/stretchr/testify/mock"
+
+	"github.com/javiertelioz/aws-lambda-golang/pkg/domain/services"
 )
 
-type MockLoggerService struct {
+// MockLogger is a mock implementation of the Logger interface for testing.
+type MockLogger struct {
 	mock.Mock
 }
 
-func (ls *MockLoggerService) Trace(ctx context.Context, msg string) {
-	fmt.Println(msg)
-}
-
-func (ls *MockLoggerService) Info(ctx context.Context, msg string) {
-	fmt.Println(msg)
-}
-
-func (ls *MockLoggerService) Debug(ctx context.Context, msg string) {
-	fmt.Println(msg)
-}
-
-func (ls *MockLoggerService) Warn(ctx context.Context, msg string) {
-	fmt.Println(msg)
-}
-
-func (ls *MockLoggerService) Error(ctx context.Context, msg string) {
-	fmt.Println(msg)
+// Log mocks the Log method of the Logger interface.
+func (m *MockLogger) Log(ctx context.Context, level services.Level, msg string, fields ...services.Field) {
+	m.Called(ctx, level, msg, fields)
 }

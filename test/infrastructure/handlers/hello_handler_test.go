@@ -31,7 +31,6 @@ func (suite *HelloHandlerTestSuite) SetupTest() {
 	suite.err = nil
 }
 
-// Given methods
 func (suite *HelloHandlerTestSuite) givenRequestWithName(name string) {
 	suite.request.QueryStringParameters = map[string]string{
 		"name": name,
@@ -55,12 +54,10 @@ func (suite *HelloHandlerTestSuite) givenRequestWithInvalidName(invalidName stri
 	suite.request.QueryStringParameters = map[string]string{"name": invalidName}
 }
 
-// When methods
 func (suite *HelloHandlerTestSuite) whenHelloHandleRequestIsCalled() {
 	suite.response, suite.err = handlers.HelloHandleRequest(suite.ctx, suite.request)
 }
 
-// Then methods
 func (suite *HelloHandlerTestSuite) thenResponseShouldBeSuccessful() {
 	suite.NoError(suite.err)
 	suite.Equal(200, suite.response.StatusCode)
@@ -86,10 +83,6 @@ func (suite *HelloHandlerTestSuite) thenResponseShouldBeValidJSON() {
 	suite.Contains(jsonResponse, "error")
 }
 
-// ============================================================================
-// Test Cases - Basic Functionality
-// ============================================================================
-
 func (suite *HelloHandlerTestSuite) TestHelloHandlerWithName() {
 	// Given
 	suite.givenRequestWithName("Joe")
@@ -113,10 +106,6 @@ func (suite *HelloHandlerTestSuite) TestHelloHandlerWithoutName() {
 	suite.thenResponseShouldBeSuccessful()
 	suite.thenResponseBodyShouldBe("Hello world!")
 }
-
-// ============================================================================
-// Test Cases - Valid Input Variations
-// ============================================================================
 
 func (suite *HelloHandlerTestSuite) TestValidName_WithSpaces() {
 	// Given
@@ -166,10 +155,6 @@ func (suite *HelloHandlerTestSuite) TestValidName_WithApostrophe() {
 	suite.thenResponseBodyShouldBe("Hello O'Brien!")
 }
 
-// ============================================================================
-// Test Cases - Empty/Default Values
-// ============================================================================
-
 func (suite *HelloHandlerTestSuite) TestNameWithOnlySpaces_ShouldDefaultToWorld() {
 	// Given
 	suite.givenRequestWithNameContainingOnlySpaces()
@@ -182,10 +167,6 @@ func (suite *HelloHandlerTestSuite) TestNameWithOnlySpaces_ShouldDefaultToWorld(
 	suite.thenResponseBodyShouldBe("Hello world!")
 }
 
-// ============================================================================
-// Test Cases - Input Validation (Length)
-// ============================================================================
-
 func (suite *HelloHandlerTestSuite) TestNameTooLong_ShouldReject() {
 	// Given
 	suite.givenRequestWithLongName(101)
@@ -195,14 +176,10 @@ func (suite *HelloHandlerTestSuite) TestNameTooLong_ShouldReject() {
 
 	// Then
 	suite.thenResponseShouldBeBadRequest()
-	suite.thenResponseBodyShouldContain("too long")
+	suite.thenResponseBodyShouldContain("exceeds maximum length")
 	suite.thenResponseBodyShouldContain("100")
 	suite.thenResponseShouldBeValidJSON()
 }
-
-// ============================================================================
-// Test Cases - Security (Attack Prevention)
-// ============================================================================
 
 func (suite *HelloHandlerTestSuite) TestInvalidCharacters_ScriptTag_ShouldReject() {
 	// Given
@@ -213,7 +190,7 @@ func (suite *HelloHandlerTestSuite) TestInvalidCharacters_ScriptTag_ShouldReject
 
 	// Then
 	suite.thenResponseShouldBeBadRequest()
-	suite.thenResponseBodyShouldContain("invalid characters")
+	suite.thenResponseBodyShouldContain("contains invalid characters")
 	suite.thenResponseShouldBeValidJSON()
 }
 
@@ -226,7 +203,7 @@ func (suite *HelloHandlerTestSuite) TestInvalidCharacters_SQLInjection_ShouldRej
 
 	// Then
 	suite.thenResponseShouldBeBadRequest()
-	suite.thenResponseBodyShouldContain("invalid characters")
+	suite.thenResponseBodyShouldContain("contains invalid characters")
 	suite.thenResponseShouldBeValidJSON()
 }
 
@@ -239,7 +216,7 @@ func (suite *HelloHandlerTestSuite) TestInvalidCharacters_SpecialSymbols_ShouldR
 
 	// Then
 	suite.thenResponseShouldBeBadRequest()
-	suite.thenResponseBodyShouldContain("invalid characters")
+	suite.thenResponseBodyShouldContain("contains invalid characters")
 	suite.thenResponseShouldBeValidJSON()
 }
 
@@ -252,6 +229,6 @@ func (suite *HelloHandlerTestSuite) TestInvalidCharacters_PathTraversal_ShouldRe
 
 	// Then
 	suite.thenResponseShouldBeBadRequest()
-	suite.thenResponseBodyShouldContain("invalid characters")
+	suite.thenResponseBodyShouldContain("contains invalid characters")
 	suite.thenResponseShouldBeValidJSON()
 }

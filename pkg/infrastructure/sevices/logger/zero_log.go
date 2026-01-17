@@ -2,7 +2,6 @@ package logger
 
 import (
 	"context"
-	"fmt"
 	"runtime"
 
 	"github.com/rs/zerolog"
@@ -12,86 +11,58 @@ import (
 	"github.com/javiertelioz/aws-lambda-golang/pkg/domain/services"
 )
 
-// ZerologLogger is a concrete implementation of the LoggerService interface
-// using the zerolog library for structured JSON logging.
-// It includes automatic caller location tracking (file and line number)
-// and stack trace marshaling for error logs.
 type ZerologLogger struct{}
 
 // NewLogger creates and configures a new ZerologLogger instance.
 // It sets up zerolog with Unix timestamp format and stack trace support.
 //
 // Returns:
-//   - A LoggerService implementation ready for use
+//   - *ZerologLogger concrete type (not interface)
+//
+// Following Go best practice: "Accept interfaces, return structs"
+// This allows callers to use the concrete type directly or assign to an interface as needed.
 //
 // The logger outputs structured JSON logs to stdout with the following features:
 //   - Unix timestamp format
 //   - Caller location (file:line)
 //   - Stack traces for error logs
-func NewLogger() services.LoggerService {
+//   - Structured fields support
+func NewLogger() *ZerologLogger {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 
 	return &ZerologLogger{}
 }
 
-func (z *ZerologLogger) Trace(ctx context.Context, msg string) {
+func (z *ZerologLogger) Log(ctx context.Context, level services.Level, msg string, fields ...services.Field) {
 	_, file, line, ok := runtime.Caller(1)
 	if !ok {
 		file = "unknown"
 		line = 0
 	}
 
-	log.Trace().
-		Str("loc", fmt.Sprintf("%s:%d", file, line)).
-		Msg(msg)
+	event := z.getEventForLevel(level)
+	event = event.Str("file", file).Int("line", line)
+	for _, field := range fields {
+		event = event.Interface(field.Key, field.Value)
+	}
+
+	event.Msg(msg)
 }
 
-func (z *ZerologLogger) Debug(ctx context.Context, msg string) {
-	_, file, line, ok := runtime.Caller(1)
-	if !ok {
-		file = "unknown"
-		line = 0
+func (z *ZerologLogger) getEventForLevel(level services.Level) *zerolog.Event {
+	switch level {
+	case services.LevelTrace:
+		return log.Trace()
+	case services.LevelDebug:
+		return log.Debug()
+	case services.LevelInfo:
+		return log.Info()
+	case services.LevelWarn:
+		return log.Warn()
+	case services.LevelError:
+		return log.Error().Stack()
+	default:
+		return log.Info()
 	}
-
-	log.Debug().
-		Str("loc", fmt.Sprintf("%s:%d", file, line)).
-		Msg(msg)
-}
-
-func (z *ZerologLogger) Info(ctx context.Context, msg string) {
-	_, file, line, ok := runtime.Caller(1)
-	if !ok {
-		file = "unknown"
-		line = 0
-	}
-
-	log.Info().
-		Str("loc", fmt.Sprintf("%s:%d", file, line)).
-		Msg(msg)
-}
-
-func (z *ZerologLogger) Warn(ctx context.Context, msg string) {
-	_, file, line, ok := runtime.Caller(1)
-	if !ok {
-		file = "unknown"
-		line = 0
-	}
-
-	log.Warn().
-		Str("loc", fmt.Sprintf("%s:%d", file, line)).
-		Msg(msg)
-}
-
-func (z *ZerologLogger) Error(ctx context.Context, msg string) {
-	_, file, line, ok := runtime.Caller(1)
-	if !ok {
-		file = "unknown"
-		line = 0
-	}
-
-	log.Error().
-		Stack().
-		Str("loc", fmt.Sprintf("%s:%d", file, line)).
-		Msg(msg)
 }
