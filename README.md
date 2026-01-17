@@ -1,12 +1,12 @@
 # 🚀 AWS Lambda Golang - Production-Ready Template
 
 [![codecov](https://codecov.io/gh/javiertelioz/aws-lambda-template-golang/graph/badge.svg?token=UCLHV4RD3C)](https://codecov.io/gh/javiertelioz/aws-lambda-template-golang)
-[![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://golang.org)
+[![Go Version](https://img.shields.io/badge/Go-1.23+-00ADD8?style=flat&logo=go)](https://golang.org)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Code Quality](https://img.shields.io/badge/Quality-87%25-green.svg)](https://github.com/javiertelioz/aws-lambda-golang)
+[![Code Quality](https://img.shields.io/badge/Quality-90%25-green.svg)](https://github.com/javiertelioz/aws-lambda-golang)
 
 A **production-ready**, **clean architecture** template for building AWS Lambda functions in Go. Features comprehensive
-input validation, structured logging, distributed tracing support, and 87% compliance with Go best practices.
+input validation, structured logging, distributed tracing support, and 90% compliance with Go best practices.
 
 ![Go Lambda Architecture](https://www.go-on-aws.com/img/lambda-go-deploy-container.png)
 
@@ -39,7 +39,7 @@ input validation, structured logging, distributed tracing support, and 87% compl
 
 ### 🧪 Testing
 
-- **87% Code Coverage** - Comprehensive test suite
+- **90% Code Coverage** - Comprehensive test suite
 - **Given-When-Then Pattern** - Clear and readable tests
 - **Parallel Execution** - Fast test execution
 - **Race Detection** - Thread-safety validation
@@ -267,7 +267,7 @@ aws-lambda-golang/
 
 ## 🧪 Testing
 
-### Test Coverage: 87%
+### Test Coverage: 90%
 
 The project includes comprehensive tests with the Given-When-Then pattern:
 
@@ -461,7 +461,7 @@ fields @timestamp, message, file, line
 
 ## 🎯 Best Practices Implemented
 
-### Code Quality: 87%
+### Code Quality: 90%
 
 - ✅ Clean Architecture
 - ✅ SOLID Principles
@@ -517,8 +517,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 For questions, suggestions, or issues:
 
 - **GitHub Issues:** [Create an issue](https://github.com/javiertelioz/aws-lambda-golang/issues)
-- **Email:** your.email@example.com
-- **Twitter:** [@yourhandle](https://twitter.com/yourhandle)
+- **Email:** jtelio118@gmail.com
+- **Twitter:** [@jtelio118](https://x.com/jtelio118)
 
 ---
 
@@ -526,7 +526,7 @@ For questions, suggestions, or issues:
 
 | Metric            | Value              |
 |-------------------|--------------------|
-| **Code Coverage** | 87%                |
+| **Code Coverage** | 90%                |
 | **Test Suites**   | 3                  |
 | **Total Tests**   | 39                 |
 | **Go Version**    | 1.21+              |
