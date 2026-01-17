@@ -10,6 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/javiertelioz/aws-lambda-golang/pkg/domain/services"
 	"github.com/javiertelioz/aws-lambda-golang/pkg/infrastructure/sevices/logger"
 )
 
@@ -28,7 +29,7 @@ func TestZerologLoggerTestSuite(t *testing.T) {
 func (suite *ZerologLoggerTestSuite) SetupTest() {
 	suite.logOutput = &bytes.Buffer{}
 	log.Logger = zerolog.New(suite.logOutput).With().Timestamp().Logger()
-	suite.logger = logger.NewLogger().(*logger.ZerologLogger)
+	suite.logger = logger.NewLogger()
 	suite.logMessage = ""
 }
 
@@ -37,23 +38,23 @@ func (suite *ZerologLoggerTestSuite) givenLogMessage(msg string) {
 }
 
 func (suite *ZerologLoggerTestSuite) whenTraceIsCalled() {
-	suite.logger.Trace(context.Background(), suite.logMessage)
+	suite.logger.Log(context.Background(), services.LevelTrace, suite.logMessage)
 }
 
 func (suite *ZerologLoggerTestSuite) whenDebugIsCalled() {
-	suite.logger.Debug(context.Background(), suite.logMessage)
+	suite.logger.Log(context.Background(), services.LevelDebug, suite.logMessage)
 }
 
 func (suite *ZerologLoggerTestSuite) whenInfoIsCalled() {
-	suite.logger.Info(context.Background(), suite.logMessage)
+	suite.logger.Log(context.Background(), services.LevelInfo, suite.logMessage)
 }
 
 func (suite *ZerologLoggerTestSuite) whenWarnIsCalled() {
-	suite.logger.Warn(context.Background(), suite.logMessage)
+	suite.logger.Log(context.Background(), services.LevelWarn, suite.logMessage)
 }
 
 func (suite *ZerologLoggerTestSuite) whenErrorIsCalled() {
-	suite.logger.Error(context.Background(), suite.logMessage)
+	suite.logger.Log(context.Background(), services.LevelError, suite.logMessage)
 }
 
 func (suite *ZerologLoggerTestSuite) thenLogShouldContainMessage() {
@@ -74,8 +75,9 @@ func (suite *ZerologLoggerTestSuite) thenLogShouldContainLocation() {
 	var logEntry map[string]interface{}
 	err := json.Unmarshal(suite.logOutput.Bytes(), &logEntry)
 	suite.NoError(err)
-	suite.Contains(logEntry, "loc")
-	suite.NotEmpty(logEntry["loc"])
+	suite.Contains(logEntry, "file")
+	suite.Contains(logEntry, "line")
+	suite.NotEmpty(logEntry["file"])
 }
 
 func (suite *ZerologLoggerTestSuite) TestTraceLog() {
