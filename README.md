@@ -6,7 +6,7 @@
 [![Code Quality](https://img.shields.io/badge/Quality-90%25-green.svg)](https://github.com/javiertelioz/aws-lambda-golang)
 
 A **production-ready**, **clean architecture** template for building AWS Lambda functions in Go. Features comprehensive
-input validation, structured logging, distributed tracing support, and 87% compliance with Go best practices.
+input validation, structured logging, distributed tracing support, and 90% compliance with Go best practices.
 
 ![Go Lambda Architecture](https://www.go-on-aws.com/img/lambda-go-deploy-container.png)
 
@@ -267,7 +267,7 @@ aws-lambda-golang/
 
 ## 🧪 Testing
 
-### Test Coverage: 87%
+### Test Coverage: 90%
 
 The project includes comprehensive tests with the Given-When-Then pattern:
 
