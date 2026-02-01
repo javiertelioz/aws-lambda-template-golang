@@ -1,12 +1,14 @@
 # 🚀 AWS Lambda Golang - Production-Ready Template
 
 [![codecov](https://codecov.io/gh/javiertelioz/aws-lambda-template-golang/graph/badge.svg?token=UCLHV4RD3C)](https://codecov.io/gh/javiertelioz/aws-lambda-template-golang)
-[![Go Version](https://img.shields.io/badge/Go-1.23+-00ADD8?style=flat&logo=go)](https://golang.org)
+[![Go Version](https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat&logo=go)](https://golang.org)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Code Quality](https://img.shields.io/badge/Quality-90%25-green.svg)](https://github.com/javiertelioz/aws-lambda-golang)
 
 A **production-ready**, **clean architecture** template for building AWS Lambda functions in Go. Features comprehensive
 input validation, structured logging, distributed tracing support, and 90% compliance with Go best practices.
+
+**Quick Links:** [Quick Start](#-quick-start) | [Documentation](#-api-documentation) | [Testing](#-testing) | [Deployment](#-deployment) | [Contributing](#-contributing)
 
 ![Go Lambda Architecture](https://www.go-on-aws.com/img/lambda-go-deploy-container.png)
 
@@ -56,16 +58,20 @@ input validation, structured logging, distributed tracing support, and 90% compl
 
 ## 📋 Table of Contents
 
-- [Prerequisites](#prerequisites)
-- [Quick Start](#quick-start)
-- [Project Structure](#project-structure)
-- [Architecture](#architecture)
-- [Usage](#usage)
-- [Testing](#testing)
-- [Deployment](#deployment)
-- [API Documentation](#api-documentation)
-- [Contributing](#contributing)
-- [License](#license)
+- [Prerequisites](#-prerequisites)
+- [Quick Start](#-quick-start)
+- [Project Structure](#-project-structure)
+- [Architecture](#-architecture)
+- [Usage](#-usage)
+- [Testing](#-testing)
+- [Deployment](#-deployment)
+- [API Documentation](#-api-documentation)
+- [Observability](#-observability)
+- [Best Practices](#-best-practices-implemented)
+- [Troubleshooting](#-troubleshooting)
+- [Contributing](#-contributing)
+- [FAQ](#-faq)
+- [License](#-license)
 
 ---
 
@@ -73,15 +79,15 @@ input validation, structured logging, distributed tracing support, and 90% compl
 
 Before starting, ensure you have installed:
 
-- **Go** 1.21+ - [Download](https://golang.org/dl/)
+- **Go** 1.25+ - [Download](https://golang.org/dl/)
 - **Docker** 20.10+ - [Download](https://docs.docker.com/get-docker/)
 - **Docker Compose** 2.0+ - [Download](https://docs.docker.com/compose/install/)
-- **make** - Build automation tool
+- **make** - Build automation tool (usually pre-installed on macOS/Linux)
 
-**Optional:**
+**Optional (for deployment):**
 
-- **AWS CLI** - For deployment
-- **AWS SAM CLI** - For advanced testing
+- **AWS CLI** 2.0+ - [Installation Guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+- **AWS SAM CLI** - [Installation Guide](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)
 
 ---
 
@@ -115,7 +121,8 @@ make compose-up
 ### 5. Test the Lambda Function
 
 ```bash
-curl -POST "http://localhost:9000/2015-03-31/functions/function/invocations" \
+curl -X POST "http://localhost:9000/2015-03-31/functions/function/invocations" \
+  -H "Content-Type: application/json" \
   -d '{"queryStringParameters": {"name": "John Doe"}}'
 ```
 
@@ -151,7 +158,7 @@ aws-lambda-golang/
 │   └── infrastructure/        # Infrastructure layer
 │       ├── handlers/          # Lambda handlers
 │       │   └── hello_handler.go
-│       └── services/
+│       └── services/          # Service implementations
 │           └── logger/        # Logger implementation
 │               └── zero_log.go
 │
@@ -243,22 +250,40 @@ aws-lambda-golang/
    make compose-up
    ```
 
-2. **View logs:**
+2. **Test the Lambda locally:**
+   ```bash
+   # Simple test
+   curl -X POST "http://localhost:9000/2015-03-31/functions/function/invocations" \
+     -H "Content-Type: application/json" \
+     -d '{"queryStringParameters": {"name": "World"}}'
+   
+   # Test with empty name (should default to "world")
+   curl -X POST "http://localhost:9000/2015-03-31/functions/function/invocations" \
+     -H "Content-Type: application/json" \
+     -d '{}'
+   
+   # Test validation error (name too long)
+   curl -X POST "http://localhost:9000/2015-03-31/functions/function/invocations" \
+     -H "Content-Type: application/json" \
+     -d '{"queryStringParameters": {"name": "'$(printf 'a%.0s' {1..101})'"}}'
+   ```
+
+3. **View logs:**
    ```bash
    make compose-logs
    ```
 
-3. **Run tests:**
+4. **Run tests:**
    ```bash
    make test
    ```
 
-4. **Check coverage:**
+5. **Check coverage:**
    ```bash
    make coverage
    ```
 
-5. **Stop the service:**
+6. **Stop the service:**
    ```bash
    make compose-down
    ```
@@ -309,31 +334,48 @@ suite.thenShouldReturnGreeting("Hello John!")
 
 ## 📦 Deployment
 
-### Docker Build
+### Build Docker Image
 
 ```bash
+# Build the image
 docker build -t aws-lambda-golang .
+
+# Test locally
+docker run -p 9000:8080 aws-lambda-golang
 ```
 
-### AWS Lambda Deployment
+### Deploy to AWS Lambda
 
-#### Using AWS CLI
+#### Option 1: Using AWS ECR and Lambda Console
 
 ```bash
-# Create function
+# 1. Authenticate Docker to ECR
+aws ecr get-login-password --region us-east-1 | \
+  docker login --username AWS --password-stdin <account-id>.dkr.ecr.us-east-1.amazonaws.com
+
+# 2. Create ECR repository (first time only)
+aws ecr create-repository --repository-name aws-lambda-golang --region us-east-1
+
+# 3. Tag and push image
+docker tag aws-lambda-golang:latest <account-id>.dkr.ecr.us-east-1.amazonaws.com/aws-lambda-golang:latest
+docker push <account-id>.dkr.ecr.us-east-1.amazonaws.com/aws-lambda-golang:latest
+
+# 4. Create or update Lambda function
 aws lambda create-function \
   --function-name hello-lambda \
   --package-type Image \
-  --code ImageUri=<your-ecr-repo>:latest \
-  --role <your-lambda-role-arn>
+  --code ImageUri=<account-id>.dkr.ecr.us-east-1.amazonaws.com/aws-lambda-golang:latest \
+  --role arn:aws:iam::<account-id>:role/lambda-execution-role \
+  --timeout 30 \
+  --memory-size 256
 
-# Update function
+# Update existing function
 aws lambda update-function-code \
   --function-name hello-lambda \
-  --image-uri <your-ecr-repo>:latest
+  --image-uri <account-id>.dkr.ecr.us-east-1.amazonaws.com/aws-lambda-golang:latest
 ```
 
-#### Using AWS SAM
+#### Option 2: Using AWS SAM
 
 ```yaml
 # template.yaml
@@ -476,24 +518,85 @@ fields @timestamp, message, file, line
 
 ---
 
+## 🛠️ Troubleshooting
+
+### Common Issues
+
+#### Port Already in Use
+
+If you see an error about port 9000 being in use:
+
+```bash
+# Find and kill the process using port 9000
+lsof -ti:9000 | xargs kill -9
+# Or use a different port in docker-compose.yml
+```
+
+#### Docker Build Fails
+
+If the Docker build fails:
+
+```bash
+# Clean up Docker resources
+docker system prune -a
+# Rebuild without cache
+docker-compose build --no-cache
+```
+
+#### Tests Failing
+
+If tests fail locally:
+
+```bash
+# Ensure dependencies are up to date
+make setup
+# Run tests with verbose output
+go test -v -race ./...
+```
+
+#### AWS Lambda RIE Not Found
+
+If the Lambda Runtime Interface Emulator isn't installed:
+
+```bash
+# Reinstall RIE
+make install-rie
+# Or manually download from AWS
+```
+
+---
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please follow these steps:
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Make** your changes following the development guidelines below
+4. **Run** tests and linters (`make test && make linter`)
+5. **Commit** your changes with a descriptive message
+6. **Push** to your branch (`git push origin feature/amazing-feature`)
+7. **Open** a Pull Request with a clear description
 
 ### Development Guidelines
 
-- Follow Go best practices and idioms
-- Maintain test coverage above 80%
-- Use the Given-When-Then pattern for tests
-- Add GoDoc comments for exported functions
-- Run `make linter` before committing
-- Update documentation for new features
+- ✅ Follow Go best practices and idioms
+- ✅ Maintain test coverage above 80%
+- ✅ Use the Given-When-Then pattern for tests
+- ✅ Add GoDoc comments for all exported functions
+- ✅ Run `make fmt` to format code before committing
+- ✅ Run `make linter` to check for issues
+- ✅ Update documentation for new features
+- ✅ Keep commits atomic and well-described
+
+### Code Review Process
+
+All submissions require review. We'll look for:
+
+- Code quality and adherence to Go idioms
+- Test coverage and quality
+- Documentation completeness
+- Architecture consistency
 
 ---
 
@@ -505,10 +608,55 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- AWS Lambda Go Runtime
-- Zerolog for structured logging
-- Testify for testing utilities
-- Clean Architecture principles by Robert C. Martin
+This project is built with:
+
+- [AWS Lambda Go Runtime](https://github.com/aws/aws-lambda-go) - Official AWS Lambda runtime for Go
+- [Zerolog](https://github.com/rs/zerolog) - Zero allocation JSON logger
+- [Testify](https://github.com/stretchr/testify) - Testing toolkit for Go
+
+Inspired by:
+
+- **Clean Architecture** principles by Robert C. Martin
+- **Domain-Driven Design** by Eric Evans
+- AWS best practices for serverless applications
+
+### Related Resources
+
+- [AWS Lambda Developer Guide](https://docs.aws.amazon.com/lambda/latest/dg/welcome.html)
+- [Effective Go](https://go.dev/doc/effective_go)
+- [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
+- [The Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+
+---
+
+## ❓ FAQ
+
+### Is this production-ready?
+
+Yes! This template follows AWS and Go best practices with comprehensive testing, input validation, structured logging, and security measures.
+
+### Can I use this for other Lambda handlers?
+
+Absolutely! The clean architecture makes it easy to add new handlers and use cases. Simply follow the existing patterns in the `pkg/` directory.
+
+### How do I add a new use case?
+
+1. Create your use case in `pkg/application/use_cases/`
+2. Add a handler in `pkg/infrastructure/handlers/`
+3. Update `main.go` to wire dependencies
+4. Write tests following the Given-When-Then pattern
+
+### Does this support API Gateway?
+
+Yes! The handler uses `events.APIGatewayProxyRequest` which works with API Gateway, Application Load Balancer, and Lambda Function URLs.
+
+### What about database connections?
+
+Add your repository interfaces in `pkg/domain/repository/` and implementations in `pkg/infrastructure/persistence/`. Follow dependency injection patterns already established.
+
+### How do I enable X-Ray tracing?
+
+The code is X-Ray ready. Just enable X-Ray in your Lambda configuration and the context propagation will work automatically.
 
 ---
 
@@ -529,8 +677,8 @@ For questions, suggestions, or issues:
 | **Code Coverage** | 90%                |
 | **Test Suites**   | 3                  |
 | **Total Tests**   | 39                 |
-| **Go Version**    | 1.21+              |
-| **Dependencies**  | Minimal            |
+| **Go Version**    | 1.25+              |
+| **Dependencies**  | Minimal (3 main)   |
 | **Architecture**  | Clean Architecture |
 | **Lines of Code** | ~1,500             |
 
