@@ -3,7 +3,7 @@ module github.com/javiertelioz/aws-lambda-golang
 go 1.25.4
 
 require (
-	github.com/aws/aws-lambda-go v1.52.0
+	github.com/aws/aws-lambda-go v1.54.0
 	github.com/rs/zerolog v1.34.0
 	github.com/stretchr/testify v1.11.1
 )
