@@ -4,7 +4,7 @@ go 1.25.4
 
 require (
 	github.com/aws/aws-lambda-go v1.54.0
-	github.com/rs/zerolog v1.34.0
+	github.com/rs/zerolog v1.35.1
 	github.com/stretchr/testify v1.11.1
 )
 
